@@ -20,6 +20,7 @@ export
     # utils.jl 
     find_circle,
     get_pixel_size,
-    angle_calc
+    angle_calc,
+    create_circular_mask
 
 end

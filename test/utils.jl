@@ -26,3 +26,16 @@ end
     end
 end
 
+@testset ExtendedTestSet "create_circular_mask" begin
+    @testset ExtendedTestSet "create_circular_mask" begin
+        test = create_circular_mask(4, 4, [2, 2], 1);
+        answer = Bool.([
+            0  1  0  0
+            1  1  1  0
+            0  1  0  0
+            0  0  0  0
+        ])
+        @test test == answer
+    end
+end
+

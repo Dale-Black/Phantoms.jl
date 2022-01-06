@@ -67,3 +67,15 @@ function angle_calc(side1, side2)
     
     return angle
 end
+
+"""
+    create_circular_mask(h, w, center_circle, radius_circle)
+
+Create a circle mask
+"""
+function create_circular_mask(h, w, center_circle, radius_circle)
+	Y, X = collect(1:h), collect(1:w)'
+    dist_from_center = sqrt.((X .- center_circle[1]).^2 .+ (Y .- center_circle[2]).^2)
+    mask = dist_from_center .<= radius_circle
+    return mask
+end
