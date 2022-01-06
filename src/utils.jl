@@ -32,3 +32,21 @@ function find_circle(point_1, point_2, point_3)
 
     return center_insert
 end
+
+"""
+    get_pixel_size(header)
+
+Get the pixel size of a DICOM image given the DICOM header
+"""
+function get_pixel_size(header)
+	pixel_size = 
+		try
+			header[(0x0028, 0x0030)]
+		catch
+			FOV = header[(0x0018, 0x1100)]
+			matrix_size = header[(0x0028, 0x0010)]
+		
+			pixel_size = FOV / matrix_size
+		end
+	return pixel_size
+end
