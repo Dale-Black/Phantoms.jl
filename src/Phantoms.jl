@@ -19,6 +19,7 @@ export
 
     # utils.jl 
     find_circle,
-    get_pixel_size
+    get_pixel_size,
+    angle_calc
 
 end

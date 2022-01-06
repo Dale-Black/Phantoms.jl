@@ -11,3 +11,18 @@
         @test test == answer
     end
 end
+
+@testset ExtendedTestSet "angle_calc" begin
+    @testset ExtendedTestSet "angle_calc" begin
+        test = angle_calc(4, 3)
+        answer = 0.9272952180016122
+        @test test ≈ answer
+    end
+
+    @testset ExtendedTestSet "angle_calc" begin
+        test = angle_calc(1, 2)
+        answer = 0.4636476090008061
+        @test test ≈ answer
+    end
+end
+

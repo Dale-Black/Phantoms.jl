@@ -50,3 +50,20 @@ function get_pixel_size(header)
 		end
 	return pixel_size
 end
+
+"""
+    angle_calc(side1, side2)
+
+Calculate angle between two sides of rectangular triangle
+"""
+function angle_calc(side1, side2)
+    if side1 == 0
+        angle = 0
+	elseif side2 == 0
+        angle = π / 2
+    else
+        angle = atan(side1 / side2)
+	end
+    
+    return angle
+end
