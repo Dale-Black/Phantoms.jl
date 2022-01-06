@@ -232,3 +232,30 @@ function find_edges(dcm_array, slice_dict, large_index)
 	end
 	return slice_dict, flipped, flipped_index
 end
+
+"""
+    poppable_keys(flipped, flipped_index, header, slice_dict)
+
+No idea what the function is
+"""
+function poppable_keys(flipped, flipped_index, header, slice_dict)
+	SliceThickness = header[(0x0018,0x0050)]
+	poppable_keys = []        
+    if flipped == -1
+        for key in slice_dict
+            if key[1] > (flipped_index + (55 / SliceThickness))
+                append!(poppable_keys, key)
+			elseif flipped == 1
+		        for key in slice_dict
+		            if key[1] < (flipped_index - (55 / SliceThickness))
+		                append!(poppable_keys, key)
+					end
+				end
+			end
+		end
+	end
+    for key in poppable_keys
+		pop!(slice_dict)           
+	end
+	return slice_dict
+end

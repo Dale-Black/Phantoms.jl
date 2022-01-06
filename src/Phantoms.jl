@@ -13,6 +13,7 @@ export
     mask_heart,
     get_indices,
     find_edges,
+    poppable_keys,
 
     # utils.jl 
     find_circle,
