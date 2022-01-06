@@ -1,6 +1,3 @@
-using Phantoms
-using Test
+include("imports.jl")
 
-@testset "Phantoms.jl" begin
-    # Write your tests here.
-end
+include("utils.jl")
