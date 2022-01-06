@@ -259,3 +259,48 @@ function poppable_keys(flipped, flipped_index, header, slice_dict)
 	end
 	return slice_dict
 end
+
+"""
+    compute_CCI(dcm_array, header, slice_dict; calcium_threshold=130)
+
+Main `CCI_calcium_image` function
+"""
+function compute_CCI(dcm_array, header, slice_dict, flipped; calcium_threshold=130)
+	SliceThickness = header[(0x0018,0x0050)]
+	max_key, _ = maximum(zip(values(slice_dict), keys(slice_dict)))
+    max_keys = []
+    for key in slice_dict
+        if key[2] == max_key
+            append!(max_keys, key[1])
+		end
+	end
+    slice_CCI = Int(floor(median(max_keys)))
+    
+    array = copy(dcm_array)
+    array = Int.(array .> calcium_threshold)
+    
+    calcium_image = array .* dcm_array
+    quality_slice = round(slice_CCI - flipped * (20 / SliceThickness))
+
+    cal_rod_slice = slice_CCI + (flipped * Int(30 / SliceThickness))
+    
+    return calcium_image, slice_CCI, quality_slice, cal_rod_slice
+end
+
+"""
+    CCI_calcium_image(dcm_array, header; calcium_threshold=130)
+"""
+function CCI_calcium_image(dcm_array, header; calcium_threshold=130)
+    slice_dict, large_index = get_indices(
+		dcm_array, header; 
+		calcium_threshold=calcium_threshold
+	)
+    slice_dict, flipped, flipped_index = find_edges(
+		dcm_array, slice_dict, large_index
+	)
+    slice_dict = poppable_keys(flipped, flipped_index, header, slice_dict)
+    calcium_image, slice_CCI, quality_slice, cal_rod_slice = compute_CCI(
+		dcm_array, header, slice_dict, flipped; calcium_threshold=calcium_threshold
+	)
+	return calcium_image, slice_CCI, quality_slice, cal_rod_slice
+end

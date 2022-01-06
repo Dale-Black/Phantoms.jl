@@ -14,6 +14,8 @@ export
     get_indices,
     find_edges,
     poppable_keys,
+    compute_CCI,
+    CCI_calcium_image,
 
     # utils.jl 
     find_circle,
