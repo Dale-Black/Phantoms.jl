@@ -290,7 +290,7 @@ end
 """
     CCI_calcium_image(dcm_array, header; calcium_threshold=130)
 """
-function CCI_calcium_image(dcm_array, header; calcium_threshold=130)
+function mask_rod(dcm_array, header; calcium_threshold=130)
     slice_dict, large_index = get_indices(
 		dcm_array, header; 
 		calcium_threshold=calcium_threshold

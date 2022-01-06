@@ -37,20 +37,20 @@ end
     end
 end
 
-@testset ExtendedTestSet "CCI_calcium_image" begin
+@testset ExtendedTestSet "mask_rod" begin
     slice_dict2, flipped, flipped_index = find_edges(masked_array, slice_dict, large_index)
-    @testset ExtendedTestSet "CCI_calcium_image" begin
-        calcium_image, slice_CCI, quality_slice, cal_rod_slice = CCI_calcium_image(masked_array, header)
+    @testset ExtendedTestSet "mask_rod" begin
+        calcium_image, slice_CCI, quality_slice, cal_rod_slice = mask_rod(masked_array, header)
         @test slice_CCI == 25
     end
 
-    @testset ExtendedTestSet "CCI_calcium_image" begin
-        calcium_image, slice_CCI, quality_slice, cal_rod_slice = CCI_calcium_image(masked_array, header)
+    @testset ExtendedTestSet "mask_rod" begin
+        calcium_image, slice_CCI, quality_slice, cal_rod_slice = mask_rod(masked_array, header)
         @test quality_slice == 32
     end
 
-    @testset ExtendedTestSet "CCI_calcium_image" begin
-        calcium_image, slice_CCI, quality_slice, cal_rod_slice = CCI_calcium_image(masked_array, header)
+    @testset ExtendedTestSet "mask_rod" begin
+        calcium_image, slice_CCI, quality_slice, cal_rod_slice = mask_rod(masked_array, header)
         @test cal_rod_slice == 15
     end
 end
