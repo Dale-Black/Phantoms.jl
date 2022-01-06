@@ -163,3 +163,72 @@ function get_indices(dcm_array, header; calcium_threshold=130)
 	end
 	return slice_dict, large_index
 end
+
+"""
+	find_edges(dcm_array, slice_dict, large_index)
+
+Find the edges of a dcm_array
+"""
+function find_edges(dcm_array, slice_dict, large_index)
+	flipped_index = Int(round(median(large_index)))
+    edge_index = []
+    if flipped_index < (size(dcm_array, 3) / 2)
+        flipped = -1
+        for element in large_index
+            if element > (size(dcm_array, 3) / 2)
+                append!(edge_index, element)
+			end
+		end
+        if length(edge_index) == 0
+            nothing
+        else
+            for index_edge in minimum(edge_index):size(dcm_array, 3)
+                try
+                    delete!(slice_dict, index_edge)
+				catch
+                    nothing
+				end
+			end
+            for element2 in edge_index
+				deleteat!(large_index, findall(x->x==element2, large_index))
+			end
+		end
+                
+        for element in 1:maximum(large_index)
+            try
+                delete!(slice_dict, element)
+			catch
+                nothing
+			end
+		end
+    else
+        flipped = 1
+        for element in large_index
+            if element < (size(dcm_array, 3) / 2)
+                append!(edge_index, element)
+			end
+		end
+        if length(edge_index) == 0
+            nothing
+        else
+            for index_edge in 1:maximum(edge_index)
+                try
+                    delete!(slice_dict, index_edge)
+				catch
+                    nothing
+				end
+			end
+            for element2 in edge_index
+				deleteat!(large_index, findall(x->x==element2, large_index))
+			end
+		end
+        for element in minimum(large_index):size(dcm_array, 3)
+            try
+                delete!(slice_dict, element)
+			catch
+                nothing
+			end
+		end
+	end
+	return slice_dict, flipped, flipped_index
+end

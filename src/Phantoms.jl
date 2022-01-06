@@ -12,6 +12,7 @@ export
     # segmentation_QRM 
     mask_heart,
     get_indices,
+    find_edges,
 
     # utils.jl 
     find_circle,
