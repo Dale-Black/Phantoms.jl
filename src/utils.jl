@@ -1,7 +1,7 @@
 """
     findCircle(point_1, point_2, point_3)
 
-Given three points, centerpoints of the circle with [y, x] order instead of 
+Given three points, return center points of the circle with [y, x] order instead of 
 the more common [x, y] ordering.
 """
 function find_circle(point_1, point_2, point_3)

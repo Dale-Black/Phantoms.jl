@@ -70,3 +70,96 @@ function mask_heart(
     return masked_array, center_insert, mask
 end
 
+"""
+	get_indices(dcm_array, header; calcium_threshold=130)
+
+Get the indices of a dcm_array
+"""
+function get_indices(dcm_array, header; calcium_threshold=130)
+    array = copy(dcm_array)
+    array = Int.(array .> (1.1 * calcium_threshold))
+
+	pixel_size = get_pixel_size(header)
+    CCI_5mm_num_pixels = Int(round(π * (5/2)^2 / pixel_size[1]^2))
+    cal_rod_num_pixels = Int(round(π * (20/2)^2 / pixel_size[1]^2))
+    
+	kern = Int.(round(5 / pixel_size[1]))
+    if kern % 2 == 0
+        kern += 1
+	end
+    
+    slice_dict = Dict()
+    large_index = []
+    cal_rod_dict = Dict()
+    for idx in 1:size(array, 3)
+		array_filtered = mapwindow(median, array[:,:,idx], (kern, kern))
+        components = ImageComponentAnalysis.label_components(array_filtered)
+        count_5mm = 0
+		a1 = analyze_components(
+			components, BasicMeasurement(area=true, perimeter=true)
+		)
+		a2 = analyze_components(components, BoundingBox(box_area = true))
+		df = leftjoin(a1, a2, on = :l)
+		count = 0
+		for row in eachrow(df)
+			count += 1
+			df_area = Int(round(row[:area]))
+			if df_area in Int(round(CCI_5mm_num_pixels * 0.6)):Int(round(CCI_5mm_num_pixels * 1.5))
+				count_5mm += 1
+			elseif df_area in Int(round(cal_rod_num_pixels * 0.7)):Int(round(cal_rod_num_pixels * 1.3))
+				indices = row[:box_indices]
+				x_point = ((indices[1][end] - indices[1][1]) ÷ 2) + indices[1][1]
+				y_point = ((indices[2][end] - indices[2][1]) ÷ 2) + indices[2][1]
+				cal_rod_dict[count] = [x_point, y_point]
+			end
+		end
+        if count_5mm > 0 && count_5mm < 4
+            slice_dict[idx] = count_5mm
+		end
+    
+        poppable_keys = []
+        for key in cal_rod_dict
+            start_coordinate = [key[2][1], key[2][2]]
+			
+            x_right = 0
+            while array_filtered[start_coordinate[1], start_coordinate[2] + x_right] == 1
+                x_right += 1
+			end
+            
+            x_left = 0
+            while array_filtered[start_coordinate[1], start_coordinate[2] - x_left] == 1
+                x_left += 1
+			end
+            
+            y_top = 0
+            while array_filtered[start_coordinate[1] + y_top, start_coordinate[2]] == 1
+                y_top += 1
+			end
+            
+            y_bottom = 0
+            while array_filtered[start_coordinate[1] - y_bottom, start_coordinate[2]] == 1
+                y_bottom += 1
+			end
+                
+            x_dist = x_right + x_left
+            y_dist = y_top + y_bottom
+            
+            if ((x_dist in round(0.7 * y_dist):round(1.2 * y_dist)) == false) || ((round(0.7 * y_dist) == 0) && (round(1.2 * y_dist) == 0))
+                push!(poppable_keys, key)
+            else
+				nothing
+			end
+		end
+		
+        for key in poppable_keys
+			pop!(cal_rod_dict)
+		end
+                
+        if length(cal_rod_dict) == 0
+			nothing
+        else
+            append!(large_index, idx)
+		end
+	end
+	return slice_dict, large_index
+end
