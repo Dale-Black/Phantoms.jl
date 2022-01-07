@@ -9,13 +9,14 @@ include("segmentation_QRM.jl")
 include("utils.jl")
 
 export 
-    # segmentation_QRM 
+    # segmentation_QRM.jl
     mask_heart,
     get_indices,
     find_edges,
     poppable_keys,
     compute_CCI,
     mask_rod,
+    calc_output,
 
     # utils.jl 
     find_circle,
