@@ -82,3 +82,10 @@ end
         @test center == [218, 257]
     end
 end
+
+@testset ExtendedTestSet "calc_centers" begin
+    dict = calc_centers(dcm_array, output, header, center_insert, slice_CCI)
+    @testset ExtendedTestSet "calc_centers" begin
+        @test dict[:Large_MD] == [151, 292]
+    end
+end
