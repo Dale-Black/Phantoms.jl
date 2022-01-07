@@ -2,6 +2,7 @@ path = string(cd(pwd, "..") , "/images/Large_rep1")
 dcms = dcmdir_parse(path)
 dcm_array = load_dcm_array(dcms)
 header = dcms[1].meta
+PixelSpacing = get_pixel_size(header)
 
 @testset ExtendedTestSet "mask_heart" begin
     global masked_array
@@ -11,6 +12,8 @@ header = dcms[1].meta
             header, dcm_array, size(dcm_array, 3) ÷ 2
             )
     @testset ExtendedTestSet "mask_heart" begin
+        global rows
+        global cols
         rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
         Y, X = collect(1:512), collect(1:512)'
         dist_from_center = @. sqrt((X - center_insert[2])^2 + (Y-center_insert[1])^2)
@@ -87,5 +90,17 @@ end
     dict = calc_centers(dcm_array, output, header, center_insert, slice_CCI)
     @testset ExtendedTestSet "calc_centers" begin
         @test dict[:Large_MD] == [151, 292]
+    end
+end
+
+@testset ExtendedTestSet "mask_inserts" begin
+    @testset ExtendedTestSet "mask_inserts" begin
+        mask_L_HD, mask_M_HD, mask_S_HD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_LD, mask_M_LD, mask_S_LD = mask_inserts(
+            dcm_array, masked_array, header, slice_CCI, center_insert
+            )
+        dict = calc_centers(dcm_array, output, header, center_insert, slice_CCI)
+        lg_hd = [dict[:Large_HD][2], dict[:Large_HD][1]]
+        mask_L_HD_answer = create_circular_mask(rows, cols, lg_hd, ((5 ÷ PixelSpacing[1]) / 2) + 1)
+        @test mask_L_HD == mask_L_HD_answer
     end
 end

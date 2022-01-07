@@ -489,3 +489,43 @@ function calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
 end
 
 """
+	mask_inserts(
+		dcm_array, masked_array, header, CCI_slice, center_insert; 
+		calcium_threshold=130, comp_connect=trues(3, 3)
+		)
+
+Function ...
+"""
+function mask_inserts(
+	dcm_array, masked_array, header, CCI_slice, center_insert; 
+	calcium_threshold=130, comp_connect=trues(3, 3)
+	)
+	
+    output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
+    calc_size_density_VS_AS_MS = calc_centers(dcm_array, output, header, center_insert, CCI_slice)
+
+	PixelSpacing = get_pixel_size(header)
+	rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
+
+	lg_hd = [calc_size_density_VS_AS_MS[:Large_HD][2], calc_size_density_VS_AS_MS[:Large_HD][1]]
+	lg_md = [calc_size_density_VS_AS_MS[:Large_MD][2], calc_size_density_VS_AS_MS[:Large_MD][1]]
+	lg_ld = [calc_size_density_VS_AS_MS[:Large_LD][2], calc_size_density_VS_AS_MS[:Large_LD][1]]
+	md_hd = [calc_size_density_VS_AS_MS[:Medium_HD][2], calc_size_density_VS_AS_MS[:Medium_HD][1]]
+	md_md = [calc_size_density_VS_AS_MS[:Medium_MD][2], calc_size_density_VS_AS_MS[:Medium_MD][1]]
+	md_ld = [calc_size_density_VS_AS_MS[:Medium_LD][2], calc_size_density_VS_AS_MS[:Medium_LD][1]]
+	sm_hd = [calc_size_density_VS_AS_MS[:Small_HD][2], calc_size_density_VS_AS_MS[:Small_HD][1]]
+	sm_md = [calc_size_density_VS_AS_MS[:Small_MD][2], calc_size_density_VS_AS_MS[:Small_MD][1]]
+	sm_ld = [calc_size_density_VS_AS_MS[:Small_LD][2], calc_size_density_VS_AS_MS[:Small_LD][1]]
+	
+    mask_L_HD = create_circular_mask(rows, cols, lg_hd, ((5 ÷ PixelSpacing[1]) / 2) + 1)
+    mask_L_MD = create_circular_mask(cols, rows, lg_md, ((5 ÷ PixelSpacing[1]) / 2) + 1)
+    mask_L_LD = create_circular_mask(cols, rows, lg_ld, ((5 ÷ PixelSpacing[1]) / 2) + 1)   
+    mask_M_HD = create_circular_mask(cols, rows, md_hd,((3 ÷ PixelSpacing[1]) / 2) + 1)
+    mask_M_MD = create_circular_mask(cols, rows, md_md, ((3 ÷ PixelSpacing[1]) / 2) + 1)
+    mask_M_LD = create_circular_mask(cols, rows, md_ld, ((3 ÷ PixelSpacing[1]) / 2) + 1) 
+    mask_S_HD = create_circular_mask(cols, rows, sm_hd, ((1 ÷ PixelSpacing[1]) / 2) + 1)
+    mask_S_MD = create_circular_mask(cols, rows, sm_md, ((1 ÷ PixelSpacing[1]) / 2) + 1)
+    mask_S_LD = create_circular_mask(cols, rows, sm_ld, ((1 ÷ PixelSpacing[1]) / 2) + 1) 
+
+    return mask_L_HD, mask_M_HD, mask_S_HD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_LD, mask_M_LD, mask_S_LD
+end
