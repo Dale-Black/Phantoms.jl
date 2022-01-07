@@ -17,6 +17,7 @@ export
     compute_CCI,
     mask_rod,
     calc_output,
+    center_points,
 
     # utils.jl 
     find_circle,

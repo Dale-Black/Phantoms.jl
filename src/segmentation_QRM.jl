@@ -371,3 +371,54 @@ function calc_output(dcm_array, header, CCI_slice, calcium_threshold=130, comp_c
 	output = length(unique(components2)), components2, df2, centroids2
 	return output
 end
+
+"""
+	center_points(output, header, tmp_center, CCI_slice)
+
+Function ...
+"""
+function center_points(dcm_array, output, header, tmp_center, CCI_slice)
+	PixelSpacing = get_pixel_size(header)
+	rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
+    sizes = []
+    for row in eachrow(output[3])
+		area = row[:area]
+		append!(sizes, area)
+	end
+
+	centroids = output[4]
+    largest = Dict()
+    for index in 2:length(centroids)
+		x = centroids[index][1]
+		y = centroids[index][2]
+		dist_loc = sqrt((tmp_center[2] - x)^2 + (tmp_center[1] - y)^2)
+        dist_loc *= PixelSpacing[1]
+        if dist_loc > 31
+            largest[index] = [round(y), round(x)]
+        else
+            nothing
+		end
+	end
+
+    max_dict = Dict()
+	radius = 2.5 ÷ PixelSpacing[1]
+    for key in largest
+        tmp_arr = create_circular_mask(rows, cols, (key[2][2], key[1][1]), radius)
+        tmp_arr = @. tmp_arr * dcm_array[:,:,CCI_slice] + tmp_arr * dcm_array[:,:,CCI_slice - 1] + tmp_arr * dcm_array[:,:,CCI_slice + 1]
+        tmp_arr = @. ifelse(tmp_arr == 0, missing, tmp_arr)
+        max_dict[key[1]] = median(skipmissing(tmp_arr))
+	end
+
+    large1_index, large1_key = maximum(zip(values(max_dict), keys(max_dict)))
+    pop!(max_dict, large1_key)
+    large2_index, large2_key = maximum(zip(values(max_dict), keys(max_dict)))
+    pop!(max_dict, large2_key)
+    large3_index, large3_key = maximum(zip(values(max_dict), keys(max_dict)))
+
+    center1 = largest[large1_key]
+    center2 = largest[large2_key]  
+    center3 = largest[large3_key]
+	
+    center = find_circle(center1, center2, center3)
+	return center, center1, center2, center3
+end
