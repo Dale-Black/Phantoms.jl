@@ -422,3 +422,70 @@ function center_points(dcm_array, output, header, tmp_center, CCI_slice)
     center = find_circle(center1, center2, center3)
 	return center, center1, center2, center3
 end
+
+"""
+	calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
+
+Function ...
+"""
+function calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
+	PixelSpacing = get_pixel_size(header)
+	center, center1, center2, center3 = center_points(dcm_array, output, header, tmp_center, CCI_slice)
+    centers = Dict()
+    for size_index4 in (center1, center2, center3)
+        center_index = size_index4
+        side_x = abs(center[1]-center_index[1])
+        side_y = abs(center[2]-center_index[2])
+        
+        angle = angle_calc(side_x, side_y)
+        if (center_index[1] < center[1] && center_index[2] < center[2])
+			medium_calc = [center_index[1] + (12.5 / PixelSpacing[1]) * sin(angle), (center_index[2] + (12.5 / PixelSpacing[2]) * cos(angle))]
+			low_calc = [center_index[1] + (25 / PixelSpacing[1]) * sin(angle), (center_index[2] + (25 / PixelSpacing[2]) * cos(angle))]
+		elseif (center_index[1] < center[1] && center_index[2] > center[2])
+			medium_calc = [center_index[1] + (12.5 / PixelSpacing[1]) * sin(angle), (center_index[2] - (12.5 / PixelSpacing[2]) * cos(angle))]
+			low_calc = [center_index[1] + (25 / PixelSpacing[1]) * sin(angle), (center_index[2] - (25 / PixelSpacing[2]) * cos(angle))] 
+		elseif (center_index[1] > center[1] && center_index[2] < center[2])
+			medium_calc = [center_index[1] - (12.5 / PixelSpacing[1]) * sin(angle), (center_index[2] + (12.5 / PixelSpacing[2]) * cos(angle))]
+			low_calc = [center_index[1] - (25 / PixelSpacing[1]) * sin(angle), (center_index[2] + (25 / PixelSpacing[2]) * cos(angle))]
+		elseif (center_index[1] > center[1] && center_index[2] > center[2])
+			medium_calc = [center_index[1] - (12.5 / PixelSpacing[1]) * sin(angle), (center_index[2] - (12.5 / PixelSpacing[2]) * cos(angle))]
+			low_calc = [center_index[1] - (25 / PixelSpacing[1]) * sin(angle), (center_index[2] - (25 / PixelSpacing[2]) * cos(angle))]
+		elseif (side_x == 0 && center_index[2] < center[2])
+			medium_calc = [center_index[1], center_index[2] + (12.5 / PixelSpacing[2])]
+			low_calc = [center_index[1], center_index[2] + (25 / PixelSpacing[2])]
+		elseif (side_x == 0 && center_index[2] > center[2])
+			medium_calc = [center_index[1], center_index[2] - (12.5 / PixelSpacing[2])]
+			low_calc = [center_index[1], center_index[2] - (25 / PixelSpacing[2])]
+		elseif (center_index[1] > center[1] && side_y == 0)
+            medium_calc = [center_index[1] - (12.5 / PixelSpacing[1]), center_index[2]]
+            low_calc = [center_index[1] - (25 / PixelSpacing[1]), center_index[2]]
+		elseif (center_index[1] > center[1] && side_y == 0)
+			medium_calc = [center_index[1] + (12.5 / PixelSpacing[1]), center_index[2]]
+            low_calc = [(center_index[1] + (25 / PixelSpacing[1])), center_index[1]]
+        else
+			error("unknown angle")
+		end
+                
+        if size_index4 == center1
+            centers[:Large_HD] = Int.(round.(center_index))
+            centers[:Medium_HD] = Int.(round.(medium_calc))
+            centers[:Small_HD] = Int.(round.(low_calc))
+        
+		elseif size_index4 == center2
+            centers[:Large_MD] = Int.(round.(center_index))
+            centers[:Medium_MD] = Int.(round.(medium_calc))
+            centers[:Small_MD] = Int.(round.(low_calc))
+        
+		elseif size_index4 == center3
+            centers[:Large_LD] = Int.(round.(center_index))
+            centers[:Medium_LD] = Int.(round.(medium_calc))
+            centers[:Small_LD] = Int.(round.(low_calc))
+        
+        else
+            nothing
+		end
+	end
+    return centers
+end
+
+"""
