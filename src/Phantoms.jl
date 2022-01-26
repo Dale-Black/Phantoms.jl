@@ -3,6 +3,7 @@ module Phantoms
 using ImageFiltering
 using Statistics
 using ImageComponentAnalysis
+using ImageSegmentation
 using DataFrames
 
 include("segmentation_QRM.jl")
@@ -11,8 +12,8 @@ include("utils.jl")
 export 
     # segmentation_QRM.jl
     mask_heart,
-    get_indices,
-    find_edges,
+    get_calcium_slices,
+    get_calcium_center_slices,
     poppable_keys,
     compute_CCI,
     mask_rod,

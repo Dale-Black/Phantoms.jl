@@ -13,7 +13,7 @@ function mask_heart(
 	radius_val=95, 
 	)
 	
-	pixel_size = get_pixel_size(header)
+	pixel_size = Phantoms.get_pixel_size(header)
     
     radius = (radius_val / 2) / pixel_size[1]
     central_image = copy(array_used[:, :, slice_used_center])
@@ -22,7 +22,6 @@ function mask_heart(
     if kern % 2 == 0
         kern += 1
 	end
-	
     central_image = mapwindow(median, central_image, (kern, kern))
     center = [size(central_image, 1) ÷ 2, size(central_image, 2) ÷ 2]
     a = copy(central_image)
@@ -71,15 +70,20 @@ function mask_heart(
 end
 
 """
-	get_indices(dcm_array, header; calcium_threshold=130)
+	get_calcium_slices(dcm_array, header; calcium_threshold=130)
 
-Get the indices of a dcm_array
+	Returns the slices that contain the calcium vessel inserts `slice_dict` 
+	and the slices that contain the calcium calibration rod insert `large_index`.
+
+	The calcium rod slice `large_index` usually omits the first and last slice 
+	of the rod. So to account for all of the slices containing the calcium rod, 
+	one would want a range like so: `(large_index - 1):(large_index + 1)`
 """
-function get_indices(dcm_array, header; calcium_threshold=130)
+function get_calcium_slices(dcm_array, header; calcium_threshold=130)
     array = copy(dcm_array)
     array = Int.(array .> (1.1 * calcium_threshold))
 
-	pixel_size = get_pixel_size(header)
+	pixel_size = Phantoms.get_pixel_size(header)
     CCI_5mm_num_pixels = Int(round(π * (5/2)^2 / pixel_size[1]^2))
     cal_rod_num_pixels = Int(round(π * (20/2)^2 / pixel_size[1]^2))
     
@@ -94,25 +98,33 @@ function get_indices(dcm_array, header; calcium_threshold=130)
     for idx in 1:size(array, 3)
 		array_filtered = mapwindow(median, array[:,:,idx], (kern, kern))
         components = ImageComponentAnalysis.label_components(array_filtered)
-        count_5mm = 0
 		a1 = analyze_components(
 			components, BasicMeasurement(area=true, perimeter=true)
 		)
 		a2 = analyze_components(components, BoundingBox(box_area = true))
 		df = leftjoin(a1, a2, on = :l)
+
+		count_5mm = 0
 		count = 0
 		for row in eachrow(df)
 			count += 1
 			df_area = Int(round(row[:area]))
-			if df_area in Int(round(CCI_5mm_num_pixels * 0.6)):Int(round(CCI_5mm_num_pixels * 1.5))
+			
+			r1_1 = Int(round(CCI_5mm_num_pixels * 0.6))
+			r1_2 = Int(round(CCI_5mm_num_pixels * 1.5))
+			r2_1 = Int(round(cal_rod_num_pixels * 0.7))
+			r2_2 = Int(round(cal_rod_num_pixels * 1.3))
+			
+			if df_area in r1_1:r1_2
 				count_5mm += 1
-			elseif df_area in Int(round(cal_rod_num_pixels * 0.7)):Int(round(cal_rod_num_pixels * 1.3))
+			elseif df_area in r2_1:r2_2
 				indices = row[:box_indices]
 				x_point = ((indices[1][end] - indices[1][1]) ÷ 2) + indices[1][1]
 				y_point = ((indices[2][end] - indices[2][1]) ÷ 2) + indices[2][1]
 				cal_rod_dict[count] = [x_point, y_point]
 			end
 		end
+		
         if count_5mm > 0 && count_5mm < 4
             slice_dict[idx] = count_5mm
 		end
@@ -143,8 +155,9 @@ function get_indices(dcm_array, header; calcium_threshold=130)
                 
             x_dist = x_right + x_left
             y_dist = y_top + y_bottom
-            
-            if ((x_dist in round(0.7 * y_dist):round(1.2 * y_dist)) == false) || ((round(0.7 * y_dist) == 0) && (round(1.2 * y_dist) == 0))
+
+			range1 = round(0.7 * y_dist):round(1.2 * y_dist)
+            if ((x_dist in range1) == false) || ((round(0.7 * y_dist) == 0) && (round(1.2 * y_dist) == 0))
                 push!(poppable_keys, key)
             else
 				nothing
@@ -165,11 +178,12 @@ function get_indices(dcm_array, header; calcium_threshold=130)
 end
 
 """
-	find_edges(dcm_array, slice_dict, large_index)
+	get_calcium_center_slices(dcm_array, slice_dict, large_index)
 
-Find the edges of a dcm_array
-"""
-function find_edges(dcm_array, slice_dict, large_index)
+	Returns the slices that contain the calcium vessel inserts `slice_dict`
+	and the center of the calcium calibration rod slice `flipped_index`
+	"""
+function get_calcium_center_slices(dcm_array, slice_dict, large_index)
 	flipped_index = Int(round(median(large_index)))
     edge_index = []
     if flipped_index < (size(dcm_array, 3) / 2)
@@ -280,7 +294,7 @@ function compute_CCI(dcm_array, header, slice_dict, flipped; calcium_threshold=1
     array = Int.(array .> calcium_threshold)
     
     calcium_image = array .* dcm_array
-    quality_slice = round(slice_CCI - flipped * (20 / SliceThickness))
+    quality_slice = Int.(round(slice_CCI - flipped * (20 / SliceThickness)))
 
     cal_rod_slice = slice_CCI + (flipped * Int(30 / SliceThickness))
     
@@ -288,14 +302,14 @@ function compute_CCI(dcm_array, header, slice_dict, flipped; calcium_threshold=1
 end
 
 """
-    CCI_calcium_image(dcm_array, header; calcium_threshold=130)
+	mask_rod(dcm_array, header; calcium_threshold=130)
 """
 function mask_rod(dcm_array, header; calcium_threshold=130)
-    slice_dict, large_index = get_indices(
+    slice_dict, large_index = get_calcium_slices(
 		dcm_array, header; 
 		calcium_threshold=calcium_threshold
 	)
-    slice_dict, flipped, flipped_index = find_edges(
+    slice_dict, flipped, flipped_index = get_calcium_center_slices(
 		dcm_array, slice_dict, large_index
 	)
     slice_dict = poppable_keys(flipped, flipped_index, header, slice_dict)
@@ -313,11 +327,11 @@ Calculate the output of a dcm_array
 function calc_output(dcm_array, header, CCI_slice, calcium_threshold=130, comp_connect=trues(3, 3))
 	# Actual scoring for CCI insert
     # First step is to remove slices without calcium from arrays
-	PixelSpacing = get_pixel_size(header)
-	SliceThickness = header[(0x0018,0x0050)]
-    CCI_min = Int(round((CCI_slice - (5 ÷ SliceThickness)) - 1))
-    CCI_max = Int(round((CCI_slice + (5 ÷ SliceThickness)) + 1))
-    central_CCI = Int(round((CCI_max - CCI_min) / 2))
+	PixelSpacing = Phantoms.get_pixel_size(header)
+	SliceThickness = header[(0x0018, 0x0050)]
+    CCI_min = Int((CCI_slice - round(5 / SliceThickness, RoundUp)) - 1)
+    CCI_max = Int((CCI_slice + round(5 / SliceThickness, RoundUp)) + 1)
+    central_CCI = Int(round(CCI_max - CCI_min) / 2)
     
     if CCI_min < 0
         CCI_min = 0
@@ -336,7 +350,6 @@ function calc_output(dcm_array, header, CCI_slice, calcium_threshold=130, comp_c
     CCI_array_binary = copy(CCI_array)
 	CCI_array_binary = Int.(CCI_array_binary .> 1.0*calcium_threshold)
 	inp = CCI_array_binary[:, :, central_CCI - 1] + CCI_array_binary[:, :, central_CCI] + CCI_array_binary[:, :, central_CCI + 1]
-	connectivity = trues(3, 3)
 	components = ImageComponentAnalysis.label_components(inp, comp_connect)
 	a1 = analyze_components(components, BasicMeasurement(area=true, perimeter=true))
 	a2 = analyze_components(components, BoundingBox(box_area = true))
@@ -358,6 +371,14 @@ function calc_output(dcm_array, header, CCI_slice, calcium_threshold=130, comp_c
 	image_for_center = i1 + i2 + i3
 
 	components2 = ImageComponentAnalysis.label_components(image_for_center, comp_connect)
+
+	thresh = 10
+	while length(unique(components2)) > 7
+		seg = ImageSegmentation.felzenszwalb(components2, thresh)
+		components2 = labels_map(seg) .- 1
+		thresh += 10
+	end
+	
 	b1 = analyze_components(components2, BasicMeasurement(area=true, perimeter=true))
 	b2 = analyze_components(components2, BoundingBox(box_area = true))
 	df2 = leftjoin(b1, b2, on = :l)
@@ -368,6 +389,7 @@ function calc_output(dcm_array, header, CCI_slice, calcium_threshold=130, comp_c
 		y_point = ((indices[2][end] - indices[2][1]) ÷ 2) + indices[2][1]
 		push!(centroids2, (y_point, x_point))
 	end
+	
 	output = length(unique(components2)), components2, df2, centroids2
 	return output
 end
@@ -378,7 +400,7 @@ end
 Function ...
 """
 function center_points(dcm_array, output, header, tmp_center, CCI_slice)
-	PixelSpacing = get_pixel_size(header)
+	PixelSpacing = Phantoms.get_pixel_size(header)
 	rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
     sizes = []
     for row in eachrow(output[3])
@@ -388,7 +410,7 @@ function center_points(dcm_array, output, header, tmp_center, CCI_slice)
 
 	centroids = output[4]
     largest = Dict()
-    for index in 2:length(centroids)
+    for index in 1:length(centroids)
 		x = centroids[index][1]
 		y = centroids[index][2]
 		dist_loc = sqrt((tmp_center[2] - x)^2 + (tmp_center[1] - y)^2)
@@ -399,6 +421,7 @@ function center_points(dcm_array, output, header, tmp_center, CCI_slice)
             nothing
 		end
 	end
+	# @info largest
 
     max_dict = Dict()
 	radius = 2.5 ÷ PixelSpacing[1]
@@ -408,6 +431,8 @@ function center_points(dcm_array, output, header, tmp_center, CCI_slice)
         tmp_arr = @. ifelse(tmp_arr == 0, missing, tmp_arr)
         max_dict[key[1]] = median(skipmissing(tmp_arr))
 	end
+
+	# @info max_dict
 
     large1_index, large1_key = maximum(zip(values(max_dict), keys(max_dict)))
     pop!(max_dict, large1_key)
@@ -429,7 +454,7 @@ end
 Function ...
 """
 function calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
-	PixelSpacing = get_pixel_size(header)
+	PixelSpacing = Phantoms.get_pixel_size(header)
 	center, center1, center2, center3 = center_points(dcm_array, output, header, tmp_center, CCI_slice)
     centers = Dict()
     for size_index4 in (center1, center2, center3)
@@ -485,6 +510,7 @@ function calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
             nothing
 		end
 	end
+    
     return centers
 end
 
@@ -504,7 +530,7 @@ function mask_inserts(
     output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
     calc_size_density_VS_AS_MS = calc_centers(dcm_array, output, header, center_insert, CCI_slice)
 
-	PixelSpacing = get_pixel_size(header)
+	PixelSpacing = Phantoms.get_pixel_size(header)
 	rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
 
 	lg_hd = [calc_size_density_VS_AS_MS[:Large_HD][2], calc_size_density_VS_AS_MS[:Large_HD][1]]
@@ -527,5 +553,5 @@ function mask_inserts(
     mask_S_MD = create_circular_mask(cols, rows, sm_md, ((1 ÷ PixelSpacing[1]) / 2) + 1)
     mask_S_LD = create_circular_mask(cols, rows, sm_ld, ((1 ÷ PixelSpacing[1]) / 2) + 1) 
 
-    return mask_L_LD, mask_M_LD, mask_S_LD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_HD, mask_M_HD, mask_S_HD
+    return mask_L_HD, mask_M_HD, mask_S_HD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_LD, mask_M_LD, mask_S_LD
 end

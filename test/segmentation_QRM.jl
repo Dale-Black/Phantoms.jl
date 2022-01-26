@@ -22,27 +22,27 @@ PixelSpacing = get_pixel_size(header)
     end
 end
 
-@testset ExtendedTestSet "get_indices" begin
+@testset ExtendedTestSet "get_calcium_slices" begin
     global slice_dict
     global large_index
-    slice_dict, large_index = get_indices(masked_array, header)
-    @testset ExtendedTestSet "get_indices" begin
+    slice_dict, large_index = get_calcium_slices(masked_array, header)
+    @testset ExtendedTestSet "get_calcium_slices" begin
         answer_dict = Dict(25=>2, 26=>2, 24=>1)
         @test slice_dict == answer_dict
     end
 
-    @testset ExtendedTestSet "get_indices" begin
+    @testset ExtendedTestSet "get_calcium_slices" begin
         answer_index = [10, 11, 12, 13, 14, 15, 16]
         @test large_index == answer_index
     end
 end
 
-@testset ExtendedTestSet "find_edges" begin
+@testset ExtendedTestSet "get_calcium_center_slices" begin
     global slice_dict2
     global flipped
     global flipped_index
-    slice_dict2, flipped, flipped_index = find_edges(masked_array, slice_dict, large_index)
-    @testset ExtendedTestSet "find_edges" begin
+    slice_dict2, flipped, flipped_index = get_calcium_center_slices(masked_array, slice_dict, large_index)
+    @testset ExtendedTestSet "get_calcium_center_slices" begin
         answer_dict = Dict(25=>2, 26=>2, 24=>1) 
         @test slice_dict2 == answer_dict
     end
@@ -71,7 +71,7 @@ end
     global output
     output = calc_output(masked_array, header, slice_CCI)
     @testset ExtendedTestSet "calc_output" begin
-        @test output[1] == 8
+        @test output[1] == 7
     end
 end
 
