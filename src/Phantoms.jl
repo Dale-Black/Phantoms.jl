@@ -9,7 +9,7 @@ using DataFrames
 include("segmentation_QRM.jl")
 include("utils.jl")
 
-export 
+export
     # segmentation_QRM.jl
     mask_heart,
     get_calcium_slices,

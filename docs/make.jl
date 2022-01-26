@@ -13,12 +13,7 @@ makedocs(;
         canonical="https://Dale-Black.github.io/Phantoms.jl",
         assets=String[],
     ),
-    pages=[
-        "Home" => "index.md",
-    ],
+    pages=["Home" => "index.md"],
 )
 
-deploydocs(;
-    repo="github.com/Dale-Black/Phantoms.jl",
-    devbranch="main",
-)
+deploydocs(; repo="github.com/Dale-Black/Phantoms.jl", devbranch="main")
