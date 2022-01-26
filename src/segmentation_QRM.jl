@@ -527,5 +527,5 @@ function mask_inserts(
     mask_S_MD = create_circular_mask(cols, rows, sm_md, ((1 ÷ PixelSpacing[1]) / 2) + 1)
     mask_S_LD = create_circular_mask(cols, rows, sm_ld, ((1 ÷ PixelSpacing[1]) / 2) + 1) 
 
-    return mask_L_HD, mask_M_HD, mask_S_HD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_LD, mask_M_LD, mask_S_LD
+    return mask_L_LD, mask_M_LD, mask_S_LD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_HD, mask_M_HD, mask_S_HD
 end
