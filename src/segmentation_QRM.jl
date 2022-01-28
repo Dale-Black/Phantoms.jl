@@ -414,7 +414,7 @@ end
 Function ...
 """
 function center_points(dcm_array, output, header, tmp_center, CCI_slice)
-    PixelSpacing = get_pixel_size(header)
+    PixelSpacing = Phantoms.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
     sizes = []
     for row in eachrow(output[3])
@@ -437,25 +437,24 @@ function center_points(dcm_array, output, header, tmp_center, CCI_slice)
     end
 
     max_dict = Dict()
-    radius = 2.5 ÷ PixelSpacing[1]
+    radius = round(2.5 / PixelSpacing[1], RoundUp)
     for key in largest
-        tmp_arr = create_circular_mask(rows, cols, (key[2][2], key[1][1]), radius)
-        tmp_arr = @. tmp_arr * dcm_array[:, :, CCI_slice] +
-            tmp_arr * dcm_array[:, :, CCI_slice - 1] +
-            tmp_arr * dcm_array[:, :, CCI_slice + 1]
+        tmp_arr = create_circular_mask(rows, cols, (key[2][2], key[2][1]), radius)
+        tmp_arr = @. abs(tmp_arr * dcm_array[:, :, CCI_slice]) +
+            abs(tmp_arr * dcm_array[:, :, CCI_slice - 1]) +
+            abs(tmp_arr * dcm_array[:, :, CCI_slice + 1])
         tmp_arr = @. ifelse(tmp_arr == 0, missing, tmp_arr)
         max_dict[key[1]] = median(skipmissing(tmp_arr))
     end
-
     large1_index, large1_key = maximum(zip(values(max_dict), keys(max_dict)))
     pop!(max_dict, large1_key)
     large2_index, large2_key = maximum(zip(values(max_dict), keys(max_dict)))
     pop!(max_dict, large2_key)
     large3_index, large3_key = maximum(zip(values(max_dict), keys(max_dict)))
 
-    center1 = largest[large3_key]
+    center1 = largest[large1_key]
     center2 = largest[large2_key]
-    center3 = largest[large1_key]
+    center3 = largest[large3_key]
 
     center = find_circle(center1, center2, center3)
     return center, center1, center2, center3
