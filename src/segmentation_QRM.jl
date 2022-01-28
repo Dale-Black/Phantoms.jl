@@ -385,13 +385,8 @@ function calc_output(
     image_for_center = i1 + i2 + i3
 
     components2 = ImageComponentAnalysis.label_components(image_for_center, comp_connect)
-
-    thresh = 10
-    while length(unique(components2)) > 7
-        seg = ImageSegmentation.felzenszwalb(components2, thresh)
-        components2 = labels_map(seg) .- 1
-        thresh += 10
-    end
+	components2 = Int.(components2 .> 0)
+	components2 = ImageComponentAnalysis.label_components(components2, comp_connect)
 
     b1 = analyze_components(components2, BasicMeasurement(; area=true, perimeter=true))
     b2 = analyze_components(components2, BoundingBox(; box_area=true))
