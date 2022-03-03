@@ -20,7 +20,9 @@ export
     calc_output,
     center_points,
     calc_centers,
+    calc_centers_simulation,
     mask_inserts,
+    mask_inserts_simulation,
 
     # utils.jl 
     find_circle,

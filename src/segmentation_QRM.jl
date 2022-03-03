@@ -546,69 +546,95 @@ function calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
     return centers
 end
 
-function calc_centers(dcm_array, output, header, tmp_center, CCI_slice, sim::Bool)
+function calc_centers_simulation(dcm_array, output, header, tmp_center, CCI_slice)
     PixelSpacing = Phantoms.get_pixel_size(header)
-	center, center1, center2, center3 = center_points(dcm_array, output, header, tmp_center, CCI_slice)
+    center, center1, center2, center3 = center_points(
+        dcm_array, output, header, tmp_center, CCI_slice
+    )
     centers = Dict()
     for center_index in (center1, center2, center3)
-        side_x = abs(center[1]-center_index[1])
-        side_y = abs(center[2]-center_index[2])
+        side_x = abs(center[1] - center_index[1])
+        side_y = abs(center[2] - center_index[2])
         angle = angle_calc(side_x, side_y)
         if (center_index[1] < center[1] && center_index[2] < center[2])
-			medium_calc = [center_index[1] + (10.5 / PixelSpacing[1]) * sin(angle), (center_index[2] + (10.5 / PixelSpacing[2]) * cos(angle))]
-			low_calc = [center_index[1] + (17 / PixelSpacing[1]) * sin(angle), (center_index[2] + (17 / PixelSpacing[2]) * cos(angle))]
-			
-		elseif (center_index[1] < center[1] && center_index[2] > center[2])
-			medium_calc = [center_index[1] + (10.5 / PixelSpacing[1]) * sin(angle), (center_index[2] - (10.5 / PixelSpacing[2]) * cos(angle))]
-			low_calc = [center_index[1] + (17 / PixelSpacing[1]) * sin(angle), (center_index[2] - (17 / PixelSpacing[2]) * cos(angle))] 
-			
-		elseif (center_index[1] > center[1] && center_index[2] < center[2])
-			medium_calc = [center_index[1] - (10.5 / PixelSpacing[1]) * sin(angle), (center_index[2] + (10.5 / PixelSpacing[2]) * cos(angle))]
-			low_calc = [center_index[1] - (17 / PixelSpacing[1]) * sin(angle), (center_index[2] + (17 / PixelSpacing[2]) * cos(angle))]
-			
-		elseif (center_index[1] > center[1] && center_index[2] > center[2])
-			medium_calc = [center_index[1] - (10.5 / PixelSpacing[1]) * sin(angle), (center_index[2] - (10.5 / PixelSpacing[2]) * cos(angle))]
-			low_calc = [center_index[1] - (17 / PixelSpacing[1]) * sin(angle), (center_index[2] - (17 / PixelSpacing[2]) * cos(angle))]
-			
-		elseif (side_x == 0 && center_index[2] < center[2])
-			medium_calc = [center_index[1], center_index[2] + (10.5 / PixelSpacing[2])]
-			low_calc = [center_index[1], center_index[2] + (17 / PixelSpacing[2])]
-			
-		elseif (side_x == 0 && center_index[2] > center[2])
-			medium_calc = [center_index[1], center_index[2] - (10.5 / PixelSpacing[2])]
-			low_calc = [center_index[1], center_index[2] - (17 / PixelSpacing[2])]
-			
-		elseif (center_index[1] > center[1] && side_y == 0)
+            medium_calc = [
+                center_index[1] + (10.5 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] + (10.5 / PixelSpacing[2]) * cos(angle)),
+            ]
+            low_calc = [
+                center_index[1] + (17 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] + (17 / PixelSpacing[2]) * cos(angle)),
+            ]
+
+        elseif (center_index[1] < center[1] && center_index[2] > center[2])
+            medium_calc = [
+                center_index[1] + (10.5 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] - (10.5 / PixelSpacing[2]) * cos(angle)),
+            ]
+            low_calc = [
+                center_index[1] + (17 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] - (17 / PixelSpacing[2]) * cos(angle)),
+            ]
+
+        elseif (center_index[1] > center[1] && center_index[2] < center[2])
+            medium_calc = [
+                center_index[1] - (10.5 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] + (10.5 / PixelSpacing[2]) * cos(angle)),
+            ]
+            low_calc = [
+                center_index[1] - (17 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] + (17 / PixelSpacing[2]) * cos(angle)),
+            ]
+
+        elseif (center_index[1] > center[1] && center_index[2] > center[2])
+            medium_calc = [
+                center_index[1] - (10.5 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] - (10.5 / PixelSpacing[2]) * cos(angle)),
+            ]
+            low_calc = [
+                center_index[1] - (17 / PixelSpacing[1]) * sin(angle),
+                (center_index[2] - (17 / PixelSpacing[2]) * cos(angle)),
+            ]
+
+        elseif (side_x == 0 && center_index[2] < center[2])
+            medium_calc = [center_index[1], center_index[2] + (10.5 / PixelSpacing[2])]
+            low_calc = [center_index[1], center_index[2] + (17 / PixelSpacing[2])]
+
+        elseif (side_x == 0 && center_index[2] > center[2])
+            medium_calc = [center_index[1], center_index[2] - (10.5 / PixelSpacing[2])]
+            low_calc = [center_index[1], center_index[2] - (17 / PixelSpacing[2])]
+
+        elseif (center_index[1] > center[1] && side_y == 0)
             medium_calc = [center_index[1] - (10.5 / PixelSpacing[1]), center_index[2]]
-			low_calc = [center_index[1] - (17 / PixelSpacing[1]), center_index[2]]
-			
-		elseif (center_index[1] > center[1] && side_y == 0)
-			medium_calc = [center_index[1] + (10.5 / PixelSpacing[1]), center_index[2]]
+            low_calc = [center_index[1] - (17 / PixelSpacing[1]), center_index[2]]
+
+        elseif (center_index[1] > center[1] && side_y == 0)
+            medium_calc = [center_index[1] + (10.5 / PixelSpacing[1]), center_index[2]]
             low_calc = [(center_index[1] + (17 / PixelSpacing[1])), center_index[1]]
-			
+
         else
-			error("unknown angle")
-		end
-                
+            error("unknown angle")
+        end
+
         if center_index == center1
             centers[:Large_HD] = Int.(round.(center_index))
             centers[:Medium_HD] = Int.(round.(medium_calc))
             centers[:Small_HD] = Int.(round.(low_calc))
-        
-		elseif center_index == center2
+
+        elseif center_index == center2
             centers[:Large_MD] = Int.(round.(center_index))
             centers[:Medium_MD] = Int.(round.(medium_calc))
             centers[:Small_MD] = Int.(round.(low_calc))
-        
-		elseif center_index == center3
+
+        elseif center_index == center3
             centers[:Large_LD] = Int.(round.(center_index))
             centers[:Medium_LD] = Int.(round.(medium_calc))
             centers[:Small_LD] = Int.(round.(low_calc))
-        
+
         else
             nothing
-		end
-	end
+        end
+    end
     return centers
 end
 
@@ -629,9 +655,7 @@ function mask_inserts(
     calcium_threshold=130,
     comp_connect=trues(3, 3),
 )
-    output = calc_output(
-        masked_array, header, CCI_slice, calcium_threshold, comp_connect
-    )
+    output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
     insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice)
 
     PixelSpacing = Phantoms.get_pixel_size(header)
@@ -679,7 +703,7 @@ function mask_inserts(
     mask_S_LD
 end
 
-function mask_inserts(
+function mask_inserts_simulation(
     dcm_array,
     masked_array,
     header,
@@ -689,10 +713,10 @@ function mask_inserts(
     calcium_threshold=130,
     comp_connect=trues(3, 3),
 )
-    output = calc_output(
-        masked_array, header, CCI_slice, calcium_threshold, comp_connect
+    output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
+    insert_centers = calc_centers_simulation(
+        dcm_array, output, header, center_insert, CCI_slice
     )
-    insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice, sim)
 
     PixelSpacing = Phantoms.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
