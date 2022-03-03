@@ -385,8 +385,8 @@ function calc_output(
     image_for_center = i1 + i2 + i3
 
     components2 = ImageComponentAnalysis.label_components(image_for_center, comp_connect)
-	components2 = Int.(components2 .> 0)
-	components2 = ImageComponentAnalysis.label_components(components2, comp_connect)
+    components2 = Int.(components2 .> 0)
+    components2 = ImageComponentAnalysis.label_components(components2, comp_connect)
 
     b1 = analyze_components(components2, BasicMeasurement(; area=true, perimeter=true))
     b2 = analyze_components(components2, BoundingBox(; box_area=true))
@@ -563,68 +563,49 @@ function mask_inserts(
     calcium_threshold=130,
     comp_connect=trues(3, 3),
 )
-    output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
-    calc_size_density_VS_AS_MS = calc_centers(
-        dcm_array, output, header, center_insert, CCI_slice
+    output = calc_output(
+        masked_array, header, CCI_slice, calcium_threshold, comp_connect
     )
+    insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice)
 
-    PixelSpacing = get_pixel_size(header)
+    PixelSpacing = Phantoms.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
 
-    lg_hd = [
-        calc_size_density_VS_AS_MS[:Large_HD][2], calc_size_density_VS_AS_MS[:Large_HD][1]
-    ]
-    lg_md = [
-        calc_size_density_VS_AS_MS[:Large_MD][2], calc_size_density_VS_AS_MS[:Large_MD][1]
-    ]
-    lg_ld = [
-        calc_size_density_VS_AS_MS[:Large_LD][2], calc_size_density_VS_AS_MS[:Large_LD][1]
-    ]
-    md_hd = [
-        calc_size_density_VS_AS_MS[:Medium_HD][2], calc_size_density_VS_AS_MS[:Medium_HD][1]
-    ]
-    md_md = [
-        calc_size_density_VS_AS_MS[:Medium_MD][2], calc_size_density_VS_AS_MS[:Medium_MD][1]
-    ]
-    md_ld = [
-        calc_size_density_VS_AS_MS[:Medium_LD][2], calc_size_density_VS_AS_MS[:Medium_LD][1]
-    ]
-    sm_hd = [
-        calc_size_density_VS_AS_MS[:Small_HD][2], calc_size_density_VS_AS_MS[:Small_HD][1]
-    ]
-    sm_md = [
-        calc_size_density_VS_AS_MS[:Small_MD][2], calc_size_density_VS_AS_MS[:Small_MD][1]
-    ]
-    sm_ld = [
-        calc_size_density_VS_AS_MS[:Small_LD][2], calc_size_density_VS_AS_MS[:Small_LD][1]
-    ]
-
     mask_L_HD = create_circular_mask(
-        cols, rows, lg_hd, (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols, rows, insert_centers[:Large_HD], (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
     )
     mask_L_MD = create_circular_mask(
-        cols, rows, lg_md, (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols, rows, insert_centers[:Large_MD], (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
     )
     mask_L_LD = create_circular_mask(
-        cols, rows, lg_ld, (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols, rows, insert_centers[:Large_LD], (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
     )
     mask_M_HD = create_circular_mask(
-        cols, rows, md_hd, (round(3 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols,
+        rows,
+        insert_centers[:Medium_HD],
+        (round(3 / PixelSpacing[1], RoundUp) / 2) + 1,
     )
     mask_M_MD = create_circular_mask(
-        cols, rows, md_md, (round(3 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols,
+        rows,
+        insert_centers[:Medium_MD],
+        (round(3 / PixelSpacing[1], RoundUp) / 2) + 1,
     )
     mask_M_LD = create_circular_mask(
-        cols, rows, md_ld, (round(3 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols,
+        rows,
+        insert_centers[:Medium_LD],
+        (round(3 / PixelSpacing[1], RoundUp) / 2) + 1,
     )
     mask_S_HD = create_circular_mask(
-        cols, rows, sm_hd, (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols, rows, insert_centers[:Small_HD], (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
     )
     mask_S_MD = create_circular_mask(
-        cols, rows, sm_md, (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols, rows, insert_centers[:Small_MD], (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
     )
     mask_S_LD = create_circular_mask(
-        cols, rows, sm_ld, (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
+        cols, rows, insert_centers[:Small_LD], (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
     )
 
     return mask_L_HD,

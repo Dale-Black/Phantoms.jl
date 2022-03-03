@@ -103,9 +103,8 @@ end
             dcm_array, masked_array, header, slice_CCI, center_insert
         )
         dict = calc_centers(dcm_array, output, header, center_insert, slice_CCI)
-        lg_hd = [dict[:Large_HD][2], dict[:Large_HD][1]]
         mask_L_HD_answer = create_circular_mask(
-            rows, cols, lg_hd, ((5 ÷ PixelSpacing[1]) / 2) + 1
+            cols, rows, dict[:Large_HD], (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
         )
         @test mask_L_HD == mask_L_HD_answer
     end
