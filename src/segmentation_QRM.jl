@@ -338,8 +338,8 @@ function calc_output(
     CCI_max = Int((CCI_slice + round(5 / SliceThickness, RoundUp)) + 1)
     central_CCI = Int(round(CCI_max - CCI_min) / 2)
 
-    if CCI_min < 0
-        CCI_min = 0
+    if CCI_min ≤ 0
+        CCI_min = 1
     end
     if CCI_max > size(dcm_array, 3)
         CCI_max = size(dcm_array, 3)
