@@ -186,7 +186,7 @@ end
 
 	Returns the slices that contain the calcium vessel inserts `slice_dict`
 	and the center of the calcium calibration rod slice `flipped_index`
-	"""
+"""
 function get_calcium_center_slices(dcm_array, slice_dict, large_index)
     flipped_index = Int(round(median(large_index)))
     edge_index = []
@@ -698,9 +698,15 @@ function mask_inserts(
         cols, rows, insert_centers[:Small_LD], (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
     )
 
-    return mask_L_HD,
-    mask_M_HD, mask_S_HD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_LD, mask_M_LD,
-    mask_S_LD
+    return transpose(mask_L_HD),
+    transpose(mask_M_HD),
+    transpose(mask_S_HD),
+    transpose(mask_L_MD),
+    transpose(mask_M_MD),
+    transpose(mask_S_MD),
+    transpose(mask_L_LD),
+    transpose(mask_M_LD),
+    transpose(mask_S_LD)
 end
 
 function mask_inserts_simulation(
@@ -708,8 +714,7 @@ function mask_inserts_simulation(
     masked_array,
     header,
     CCI_slice,
-    center_insert,
-    sim::Bool;
+    center_insert;
     calcium_threshold=130,
     comp_connect=trues(3, 3),
 )
@@ -758,7 +763,13 @@ function mask_inserts_simulation(
         cols, rows, insert_centers[:Small_LD], (round(1 / PixelSpacing[1], RoundUp) / 2) + 1
     )
 
-    return mask_L_HD,
-    mask_M_HD, mask_S_HD, mask_L_MD, mask_M_MD, mask_S_MD, mask_L_LD, mask_M_LD,
-    mask_S_LD
+    return transpose(mask_L_HD),
+    transpose(mask_M_HD),
+    transpose(mask_S_HD),
+    transpose(mask_L_MD),
+    transpose(mask_M_MD),
+    transpose(mask_S_MD),
+    transpose(mask_L_LD),
+    transpose(mask_M_LD),
+    transpose(mask_S_LD)
 end

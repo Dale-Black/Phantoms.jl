@@ -106,6 +106,6 @@ end
         mask_L_HD_answer = create_circular_mask(
             cols, rows, dict[:Large_HD], (round(5 / PixelSpacing[1], RoundUp) / 2) + 1
         )
-        @test mask_L_HD == mask_L_HD_answer
+        @test mask_L_HD == transpose(mask_L_HD_answer)
     end
 end
