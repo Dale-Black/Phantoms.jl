@@ -460,7 +460,7 @@ end
 
 Function ...
 """
-function calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
+function calc_centers(dcm_array, output, header, tmp_center, CCI_slice; angle_factor=0)
     PixelSpacing = get_pixel_size(header)
     center, center1, center2, center3 = center_points(
         dcm_array, output, header, tmp_center, CCI_slice
@@ -468,8 +468,8 @@ function calc_centers(dcm_array, output, header, tmp_center, CCI_slice)
     centers = Dict()
     for size_index4 in (center1, center2, center3)
         center_index = size_index4
-        side_x = abs(center[1] - center_index[1])
-        side_y = abs(center[2] - center_index[2])
+        side_x = abs(center[1] - center_index[1]) + angle_factor
+        side_y = abs(center[2] - center_index[2]) + angle_factor
 
         angle = angle_calc(side_x, side_y)
         if (center_index[1] < center[1] && center_index[2] < center[2])
@@ -654,9 +654,10 @@ function mask_inserts(
     center_insert;
     calcium_threshold=130,
     comp_connect=trues(3, 3),
+    angle_factor=0
 )
     output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
-    insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice)
+    insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice; angle_factor)
 
     PixelSpacing = Phantoms.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
