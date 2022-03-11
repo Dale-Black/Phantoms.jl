@@ -657,7 +657,7 @@ function mask_inserts(
     angle_factor=0
 )
     output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
-    insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice; angle_factor)
+    insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice; angle_factor=angle_factor)
 
     PixelSpacing = Phantoms.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
