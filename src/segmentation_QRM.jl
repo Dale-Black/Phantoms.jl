@@ -409,7 +409,7 @@ end
 Function ...
 """
 function center_points(dcm_array, output, header, tmp_center, CCI_slice)
-    PixelSpacing = Phantoms.get_pixel_size(header)
+    PixelSpacing = PhantomSegmentation.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
     sizes = []
     for row in eachrow(output[3])
@@ -547,7 +547,7 @@ function calc_centers(dcm_array, output, header, tmp_center, CCI_slice; angle_fa
 end
 
 function calc_centers_simulation(dcm_array, output, header, tmp_center, CCI_slice)
-    PixelSpacing = Phantoms.get_pixel_size(header)
+    PixelSpacing = PhantomSegmentation.get_pixel_size(header)
     center, center1, center2, center3 = center_points(
         dcm_array, output, header, tmp_center, CCI_slice
     )
@@ -659,7 +659,7 @@ function mask_inserts(
     output = calc_output(masked_array, header, CCI_slice, calcium_threshold, comp_connect)
     insert_centers = calc_centers(dcm_array, output, header, center_insert, CCI_slice; angle_factor=angle_factor)
 
-    PixelSpacing = Phantoms.get_pixel_size(header)
+    PixelSpacing = PhantomSegmentation.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
 
     mask_L_HD = create_circular_mask(
@@ -724,7 +724,7 @@ function mask_inserts_simulation(
         dcm_array, output, header, center_insert, CCI_slice
     )
 
-    PixelSpacing = Phantoms.get_pixel_size(header)
+    PixelSpacing = PhantomSegmentation.get_pixel_size(header)
     rows, cols = Int(header[(0x0028, 0x0010)]), Int(header[(0x0028, 0x0011)])
 
     mask_L_HD = create_circular_mask(

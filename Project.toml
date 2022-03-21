@@ -1,4 +1,4 @@
-name = "Phantoms"
+name = "PhantomSegmentation"
 uuid = "9bf6ac95-9ecd-4b40-9903-3771e8d4f0b8"
 authors = ["Dale-Black <djblack@uci.edu> and contributors"]
 version = "0.1.0"

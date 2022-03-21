@@ -1,4 +1,4 @@
-using Phantoms
+using PhantomSegmentation
 using Test
 using TestSetExtensions
 

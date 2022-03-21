@@ -1,4 +1,4 @@
-module Phantoms
+module PhantomSegmentation
 
 using ImageFiltering
 using Statistics
