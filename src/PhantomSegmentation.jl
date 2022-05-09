@@ -2,6 +2,7 @@ module PhantomSegmentation
 
 using ImageFiltering
 using Statistics
+using LinearAlgebra
 using ImageComponentAnalysis
 using ImageSegmentation
 using DataFrames

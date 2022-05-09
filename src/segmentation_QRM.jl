@@ -439,9 +439,7 @@ function center_points(dcm_array, output, header, tmp_center, CCI_slice)
         tmp_arr = @. ifelse(tmp_arr == 0, missing, tmp_arr)
         max_dict[key[1]] = median(skipmissing(tmp_arr))
 	end
-    large1_index, large1_key = maximum(zip(values(max_dict), keys(max_dict)))
-    pop!(max_dict, large1_key)
-
+    _, large1_key = maximum(zip(values(max_dict), keys(max_dict)))
     center1 = largest[large1_key]
 	
 	center = vec(tmp_center')
