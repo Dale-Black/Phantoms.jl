@@ -86,6 +86,30 @@ function create_circular_mask(h, w, center_circle, radius_circle)
 end
 
 """
+    find_triangle_points(p1::Vector, center::Vector; offset=0, offset2=0)
+
+Given the center-point `center` of an equilateral triangle and one single corner-point `p1`, 
+compute the other corner-points `p2` and `p3`
+"""
+function find_triangle_points(p1::Vector, center::Vector; offset=0, offset2=0)
+	# Shift the points as if the center-point was located at (0, 0)
+	p1 = p1 .- center
+
+	# Calculate points 2 and 3
+	R = norm(p1)
+	θ = atan(p1[2], p1[1])
+	p2 = [R*cos(θ + (2*π/3) + offset), R*sin(θ + (2*π/3) + offset)]
+ 	p3 = [R*cos(θ - (2*π/3) + offset2), R*sin(θ - (2*π/3) + offset2)]
+
+	# Fudge (NEEDS TO BE FIXED)
+	p2 = p2[1] + 2, p2[2] - 5
+	
+	# Shift the points back to the original center point
+	p2, p3 = Int.(round.(p2 .+ center)), Int.(round.(p3 .+ center))
+	return p2, p3
+end
+
+"""
 
 """
 function mass_calibration(

@@ -29,6 +29,7 @@ export
     get_pixel_size,
     angle_calc,
     create_circular_mask,
+    find_triangle_points,
     mass_calibration
 
 end
