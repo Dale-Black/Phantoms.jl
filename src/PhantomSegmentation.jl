@@ -7,11 +7,16 @@ using ImageComponentAnalysis
 using ImageSegmentation
 using DataFrames
 
-include("segmentation_QRM.jl")
+include("QRM.jl")
 include("utils.jl")
 
 export
-    # segmentation_QRM.jl
+    #QRM_simulation.jl
+    center_points_simulation,
+    calc_centers_simulation,
+    mask_inserts_simulation,
+
+    # QRM.jl
     mask_heart,
     get_calcium_slices,
     get_calcium_center_slices,
@@ -21,9 +26,7 @@ export
     calc_output,
     center_points,
     calc_centers,
-    calc_centers_simulation,
     mask_inserts,
-    mask_inserts_simulation,
 
     # utils.jl 
     find_circle,

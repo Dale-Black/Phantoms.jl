@@ -86,7 +86,7 @@ end
         dcm_array, output, header, center_insert, slice_CCI
     )
     @testset ExtendedTestSet "center_points" begin
-        @test center == [218, 257]
+        @test center == [217, 257]
     end
 end
 

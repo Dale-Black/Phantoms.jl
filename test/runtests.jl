@@ -1,4 +1,4 @@
 include("imports.jl")
 
-include("segmentation_QRM.jl")
+include("QRM.jl")
 include("utils.jl")
