@@ -8,9 +8,14 @@ using ImageSegmentation
 using DataFrames
 
 include("QRM.jl")
+include("QRM_simulation.jl")
+include("QRM_motion.jl")
 include("utils.jl")
 
 export
+    #QRM_simulation.jl
+    mask_inserts_motion,
+
     #QRM_simulation.jl
     center_points_simulation,
     calc_centers_simulation,
