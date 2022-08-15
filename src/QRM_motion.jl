@@ -6,8 +6,8 @@ function calc_output_motion(
     PixelSpacing = PhantomSegmentation.get_pixel_size(header)
     SliceThickness = header[(0x0018, 0x0050)]
     CCI_min = slices[1] - 1
-    CCI_max = slices[2] + 2
-    central_CCI = Int(round(CCI_max - CCI_min) / 2)
+    CCI_max = slices[2] + 1
+    central_CCI = Int(round(abs(CCI_min - CCI_max) / 2))
 
     if CCI_min ≤ 0
         CCI_min = 1
