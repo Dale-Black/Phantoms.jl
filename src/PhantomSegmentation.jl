@@ -14,6 +14,7 @@ include("utils.jl")
 
 export
     #QRM_simulation.jl
+    calc_output_motion,
     mask_inserts_motion,
 
     #QRM_simulation.jl
