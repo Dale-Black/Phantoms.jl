@@ -92,21 +92,21 @@ Given the center-point `center` of an equilateral triangle and one single corner
 compute the other corner-points `p2` and `p3`
 """
 function find_triangle_points(p1::Vector, center::Vector; offset=0, offset2=0)
-	# Shift the points as if the center-point was located at (0, 0)
-	p1 = p1 .- center
+    # Shift the points as if the center-point was located at (0, 0)
+    p1 = p1 .- center
 
-	# Calculate points 2 and 3
-	R = norm(p1)
-	θ = atan(p1[2], p1[1])
-	p2 = [R*cos(θ + (2*π/3) + offset), R*sin(θ + (2*π/3) + offset)]
- 	p3 = [R*cos(θ - (2*π/3) + offset2), R*sin(θ - (2*π/3) + offset2)]
+    # Calculate points 2 and 3
+    R = norm(p1)
+    θ = atan(p1[2], p1[1])
+    p2 = [R * cos(θ + (2 * π / 3) + offset), R * sin(θ + (2 * π / 3) + offset)]
+    p3 = [R * cos(θ - (2 * π / 3) + offset2), R * sin(θ - (2 * π / 3) + offset2)]
 
-	# Fudge (NEEDS TO BE FIXED)
-	p2 = p2[1] + 2, p2[2] - 5
-	
-	# Shift the points back to the original center point
-	p2, p3 = Int.(round.(p2 .+ center)), Int.(round.(p3 .+ center))
-	return p2, p3
+    # Fudge (NEEDS TO BE FIXED)
+    p2 = p2[1] + 2, p2[2] - 5
+
+    # Shift the points back to the original center point
+    p2, p3 = Int.(round.(p2 .+ center)), Int.(round.(p3 .+ center))
+    return p2, p3
 end
 
 """
@@ -185,4 +185,36 @@ function mass_calibration(
     water_rod_metrics = mean_0HU, std_0HU
 
     return mass_cal_factor, angle_0_200HA, water_rod_metrics
+end
+
+"""
+    load_dcm_array(dcm_data::Vector{DICOM.DICOMData})
+Given some DICOM.DICOMData, `load_dcm_array` loads the pixels
+of each slice into a 3D array and returns the array
+"""
+function load_dcm_array(dcm_data)
+    return array = cat(
+        [dcm_data[i][(0x7fe0, 0x0010)] for i in 1:length(dcm_data)]...; dims=3
+    )
+end
+
+"""
+    get_pixel_size(header)
+Get the pixel information of the DICOM image given the `header` info.
+Returns the x, y, and z values, where `z` corresponds to slice thickness
+"""
+function get_pixel_size(header)
+    head = copy(header)
+    pixel_size =
+        try
+            pixel_size = (head[(0x0028, 0x0030)])
+            push!(pixel_size, head[(0x0018, 0x0050)])
+        catch
+            FOV = (head[(0x0018, 0x1100)])
+            matrix_size = head[(0x0028, 0x0010)]
+
+            pixel_size = FOV / matrix_size
+            push!(pixel_size, head[(0x0018, 0x0050)])
+        end
+    return pixel_size
 end

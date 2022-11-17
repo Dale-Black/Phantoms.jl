@@ -1,8 +1,8 @@
 path = string(cd(pwd, ".."), "/images/Large_rep1")
 dcms = dcmdir_parse(path)
-dcm_array = load_dcm_array(dcms)
+dcm_array = PhantomSegmentation.load_dcm_array(dcms)
 header = dcms[1].meta
-PixelSpacing = get_pixel_size(header)
+PixelSpacing = PhantomSegmentation.get_pixel_size(header)
 
 @testset ExtendedTestSet "mask_heart" begin
     global masked_array
