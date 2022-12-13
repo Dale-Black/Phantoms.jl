@@ -55,7 +55,7 @@ Function ...
 """
 function calc_centers_simulation(dcm_array, output, header, tmp_center, CCI_slice)
     PixelSpacing = PhantomSegmentation.get_pixel_size(header)
-    center, center1, center2, center3 = center_points(
+    center, center1, center2, center3 = center_points_simulation(
         dcm_array, output, header, tmp_center, CCI_slice
     )
     centers = Dict()
